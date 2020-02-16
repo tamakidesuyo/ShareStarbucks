@@ -17,3 +17,58 @@ data: { confirm: 'Sure?'}%>
 </li>
 <% end %>
 </ul>
+
+<div id="target"></div>
+<input type="text" id="keyword">
+<button id="search">Search</button>
+<script>
+    function initMap() {
+      'use strict';
+
+      let target = document.getElementById('target');
+      // let geocoder = new google.maps.Geocoder();
+      let map;
+      // let tokyo = {lat: 35.681167, lng: 139.767052};
+      let service;
+      // let infoWindow;
+      // let marker;
+
+      if (!navigator.geolocation) {
+        alert('Geolocation not supported!');
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(function(position) {
+        let current = {lat: position.coords.latitude, lng: position.coords.longitude};
+        map = new google.maps.Map(target, {
+          center: current,
+          zoom: 18
+        });
+        document.getElementById('search').addEventListener('click', function() {
+        service = new google.maps.places.PlacesService(map);
+        service.nearbySearch({
+          location: current,
+          radius: '500',
+          name: document.getElementById('keyword').value
+        }, function(results, status){
+          let i;
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            for (i = 0; i < results.length; i++) {
+              new google.maps.Marker({
+                map: map,
+                position: results[i].geometry.location,
+                title: results[i].name
+              });
+            }
+          } else {
+            alert('Failed: ' + status);
+            return;
+          }
+        });
+      });
+      }, function() {
+        alert('Geolocation failed!');
+        return;
+      });
+    }
+</script>
