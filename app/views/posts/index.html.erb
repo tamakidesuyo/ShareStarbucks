@@ -37,6 +37,8 @@ data: { confirm: 'Sure?'}%>
       let marker = [];
       let destination = [];
       let current;
+      let DS = new google.maps.DirectionsService();
+      let DR = new google.maps.DirectionsRenderer();
 
       // geolocationが対応していないブラウザの場合はアラートを表示
       if (!navigator.geolocation) {
@@ -95,19 +97,21 @@ data: { confirm: 'Sure?'}%>
         return;
       });
 
-      new google.maps.DirectionsRenderer().setMap(map);
 
       // マーカーをクリックした時に現在地からのルートを表示
       function markerEvent(i) {
+        DR.setMap(map);  //map を DirectionsRendererオブジェクトのsetMap()を使って関連付け
         marker[i].addListener('click', function() {
           let request = {
             origin: current,
             destination: destination[i],
-            travelMode: google.maps.TravelMode.WALKING
+            travelMode: google.maps.TravelMode.WALKING //検索結果を徒歩ルートに指定
           };
-
-          new google.maps.DirectionsService().route(request, function(result, status) {
-            new google.maps.DirectionsRenderer().setDirections(result);
+          DS.route(request, function (result, status) { //ルート検索を実行
+            DR.setOptions({
+            suppressMarkers: true //デフォルトで表示されるマーカーを非表示に
+          });
+            DR.setDirections(result); //ルートの検索結果をmapに描画
           });
         });
       }
