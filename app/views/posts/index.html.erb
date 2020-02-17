@@ -18,6 +18,8 @@ data: { confirm: 'Sure?'}%>
 <% end %>
 </ul>
 
+
+
 <%# 以下、mapを表示するために必要 %>
 <div id="target"></div>
 <input type="text" id="keyword">
@@ -32,21 +34,25 @@ data: { confirm: 'Sure?'}%>
       // let tokyo = {lat: 35.681167, lng: 139.767052};
       let service;
       // let infoWindow;
-      // let marker;
+      let marker = [];
+      let destination = [];
+      let current;
 
+      // geolocationが対応していないブラウザの場合はアラートを表示
       if (!navigator.geolocation) {
         alert('Geolocation not supported!');
         return;
       }
 
+      // 現在地を中心に、マップを描画
       navigator.geolocation.getCurrentPosition(function(position) {
-        let current = {lat: position.coords.latitude, lng: position.coords.longitude};
+        current = {lat: position.coords.latitude, lng: position.coords.longitude};
         map = new google.maps.Map(target, {
           center: current,
           zoom: 15
         });
 
-        // 現在地にマーカーを表示
+      // 現在地にマーカーを表示
       new google.maps.Marker({
         map: map,
 	      position: current,
@@ -56,10 +62,6 @@ data: { confirm: 'Sure?'}%>
         }
       });
           
-
-          
-
-
 
         // 半径500m以内の検索結果にヒットした店舗を表示
         document.getElementById('search').addEventListener('click', function() {
@@ -72,12 +74,15 @@ data: { confirm: 'Sure?'}%>
           let i;
           if (status === google.maps.places.PlacesServiceStatus.OK) {
             for (i = 0; i < results.length; i++) {
-              new google.maps.Marker({
+              destination[i] = results[i].geometry.location;
+              marker[i] = new google.maps.Marker({
                 map: map,
-                position: results[i].geometry.location,
+                position: destination[i],
                 title: results[i].name,
                 animation: google.maps.Animation.DROP
               });
+
+              markerEvent(i); //マーカーをクリックした時のイベントを追加
             }
           } else {
             alert('Failed: ' + status);
@@ -85,9 +90,28 @@ data: { confirm: 'Sure?'}%>
           }
         });
       });
-      }, function() {
+      }, function() {        
         alert('Geolocation failed!');
         return;
       });
+
+      new google.maps.DirectionsRenderer().setMap(map);
+
+      // マーカーをクリックした時に現在地からのルートを表示
+      function markerEvent(i) {
+        marker[i].addListener('click', function() {
+          let request = {
+            origin: current,
+            destination: destination[i],
+            travelMode: google.maps.TravelMode.WALKING
+          };
+
+          new google.maps.DirectionsService().route(request, function(result, status) {
+            new google.maps.DirectionsRenderer().setDirections(result);
+          });
+        });
+      }
+
+
     }
 </script>
