@@ -37,6 +37,7 @@ data: { confirm: 'Sure?'}%>
       let marker = [];
       let destination = [];
       let current;
+      let infoWindow;
       let DS = new google.maps.DirectionsService();
       let DR = new google.maps.DirectionsRenderer();
 
@@ -65,33 +66,44 @@ data: { confirm: 'Sure?'}%>
       });
           
 
-        // 半径500m以内の検索結果にヒットした店舗を表示
         document.getElementById('search').addEventListener('click', function() {
-        service = new google.maps.places.PlacesService(map);
-        service.nearbySearch({
-          location: current,
-          radius: '1000',
-          name: document.getElementById('keyword').value
-        }, function(results, status){
-          let i;
-          if (status === google.maps.places.PlacesServiceStatus.OK) {
-            for (i = 0; i < results.length; i++) {
-              destination[i] = results[i].geometry.location;
-              marker[i] = new google.maps.Marker({
-                map: map,
-                position: destination[i],
-                title: results[i].name,
-                animation: google.maps.Animation.DROP
-              });
-
-              markerEvent(i); //マーカーをクリックした時のイベントを追加
-            }
-          } else {
-            alert('Failed: ' + status);
-            return;
+          // マップを初期位置に戻す
+          map.setCenter(current, 15);
+          // 前回のマーカーをクリア
+          let j;
+          for (j = 0; j < marker.length; j++) {
+            marker[j].setMap(null);
           }
+          // 前回のルート検索結果があれば削除
+          if(DR != null) {
+            DR.set('directions', null);
+          }
+          // 半径500m以内の検索結果にヒットした店舗を表示
+          service = new google.maps.places.PlacesService(map);
+          service.nearbySearch({
+            location: current,
+            radius: '1000',
+            name: document.getElementById('keyword').value
+          }, function(results, status){
+            let i;
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+              for (i = 0; i < results.length; i++) {
+                destination[i] = results[i].geometry.location;
+                marker[i] = new google.maps.Marker({
+                  map: map,
+                  position: destination[i],
+                  title: results[i].name,
+                  animation: google.maps.Animation.DROP
+                });
+
+                markerEvent(i); //マーカーをクリックした時のイベントを追加
+              }
+            } else {
+              alert('Failed: ' + status);
+              return;
+            }
+          });
         });
-      });
       }, function() {        
         alert('Geolocation failed!');
         return;
@@ -102,6 +114,9 @@ data: { confirm: 'Sure?'}%>
       function markerEvent(i) {
         DR.setMap(map);  //map を DirectionsRendererオブジェクトのsetMap()を使って関連付け
         marker[i].addListener('click', function() {
+          if (infoWindow) {
+            infoWindow.close(); //値が入っていたらinfoWindowを閉じる
+          }
           let request = {
             origin: current,
             destination: destination[i],
@@ -110,7 +125,12 @@ data: { confirm: 'Sure?'}%>
           DS.route(request, function (result, status) { //ルート検索を実行
             DR.setOptions({
             suppressMarkers: true //デフォルトで表示されるマーカーを非表示に
-          });
+            });
+            let time = result.routes[0].legs[0].duration.text;  // 所要時間を取得
+            infoWindow = new google.maps.InfoWindow({
+              content: '徒歩'+ time
+            });
+            infoWindow.open(map, marker[i]);
             DR.setDirections(result); //ルートの検索結果をmapに描画
           });
         });
