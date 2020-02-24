@@ -10,6 +10,7 @@ class PostsController < ApplicationController
 
   def new
     @post = Post.new
+    @name = params[:name] #@nameにindexの店舗名を代入
   end
 
   def create

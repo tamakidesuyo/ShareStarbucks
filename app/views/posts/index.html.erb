@@ -24,7 +24,11 @@ data: { confirm: 'Sure?'}%>
 <div id="target"></div>
 <input type="text" id="keyword">
 <button id="search">Search</button>
+<%= link_to 'Add New +', new_post_path, class: 'header-menu', id: 'toukou'%>
+<script src="https://maps.googleapis.com/maps/api/js?language=ja&region=JP&key=AIzaSyCR9EmqJhJtXvukg0bstS-Sm_ATTsu6-Co&callback=initMap&libraries=places" async defer></script>
 <script>
+document.getElementById("toukou").style.display ="none";
+
     function initMap() {
       'use strict';
 
@@ -36,6 +40,7 @@ data: { confirm: 'Sure?'}%>
       // let infoWindow;
       let marker = [];
       let destination = [];
+      let name = [];
       let current;
       let infoWindow;
       let DS = new google.maps.DirectionsService();
@@ -67,8 +72,6 @@ data: { confirm: 'Sure?'}%>
           
 
         document.getElementById('search').addEventListener('click', function() {
-          // マップを初期位置に戻す
-          map.setCenter(current, 15);
           // 前回のマーカーをクリア
           let j;
           for (j = 0; j < marker.length; j++) {
@@ -78,6 +81,9 @@ data: { confirm: 'Sure?'}%>
           if(DR != null) {
             DR.set('directions', null);
           }
+          // マップを初期位置に戻す
+          map.setCenter(current);
+          map.setZoom(15);
           // 半径500m以内の検索結果にヒットした店舗を表示
           service = new google.maps.places.PlacesService(map);
           service.nearbySearch({
@@ -88,11 +94,12 @@ data: { confirm: 'Sure?'}%>
             let i;
             if (status === google.maps.places.PlacesServiceStatus.OK) {
               for (i = 0; i < results.length; i++) {
+                name[i] = results[i].name;
                 destination[i] = results[i].geometry.location;
                 marker[i] = new google.maps.Marker({
                   map: map,
                   position: destination[i],
-                  title: results[i].name,
+                  title: name[i],
                   animation: google.maps.Animation.DROP
                 });
 
@@ -110,10 +117,18 @@ data: { confirm: 'Sure?'}%>
       });
 
 
-      // マーカーをクリックした時に現在地からのルートを表示
+      // マーカーをクリックした時の処理
       function markerEvent(i) {
         DR.setMap(map);  //map を DirectionsRendererオブジェクトのsetMap()を使って関連付け
         marker[i].addListener('click', function() {
+          //新規投稿のボタンが無ければボタンを表示する
+          if (document.getElementById('toukou').style.display === "none") {
+            document.getElementById('toukou').style.display = "block";
+          } 
+
+          //マーカーの店舗情報をtoukouのurlに追加
+          $('#toukou').attr('href', '/posts/new' + '?' + 'name=' + name[i]);
+
           if (infoWindow) {
             infoWindow.close(); //値が入っていたらinfoWindowを閉じる
           }
