@@ -1,7 +1,7 @@
 <h2>Add New Post</h2>
 <%= form_for @post do |f|%>
 <p>
-  <%= f.text_field :title, placeholder: 'enter title', value: @name%>
+  <%= f.text_field :title, placeholder: 'enter title', value: @name, class: 'title'%>
   <% if @post.errors.messages[:title].any? %>
     <span class="error"><%= @post.errors.messages[:title][0] %></span>
   <% end %>

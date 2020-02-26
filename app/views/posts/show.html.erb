@@ -18,7 +18,7 @@
 <% end %>
 <%= form_for ([@post, @post.comments.build]) do |f|%>
 <p>
-  <%= f.text_field :body %>
+  <%= f.text_field :body, class: 'title' %>
 </p>
 <p>
   <%= f.submit %>

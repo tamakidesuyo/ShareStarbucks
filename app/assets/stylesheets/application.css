@@ -68,13 +68,15 @@ ul > li {
   border-bottom: none;
 }
 
-input[type ="text"], textarea {
+.title, textarea {
   font-size: 16px;
   box-sizing: border-box;
   width: 600px;
   height: 40px;
   padding: 5px;
 }
+
+/* input[type = "text"] */
 
 textarea {
   height: 400px;

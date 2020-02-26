@@ -1,0 +1,199 @@
+<h4> 現在 <%= current_user.name %> さんがログインしています </h4> <!-- ここを追加します -->
+<h4> メールアドレス： <%= current_user.email %> </h4>
+<h2>
+  <%= link_to 'Add New +', new_post_path, class: 'header-menu' %>
+  <%= link_to "ログアウト", destroy_user_session_path, method: :delete %>
+  My Posts
+</h2>
+<ul>
+  <% @posts.each do |post| %>
+  <li>
+    <%= link_to post.title, post_path(post.id) %>
+    <span class="command_class">
+      <%= link_to 'Edit', edit_post_path(post.id), class: 'command'%>
+      <%= link_to 'x', 
+post_path(post.id), 
+method: :delete, 
+class: 'command_x',
+data: { confirm: 'Sure?'}%>
+    </span>
+  </li>
+  <% end %>
+</ul>
+
+
+
+<%# 以下、mapを表示するために必要 %>
+<div id="target"></div>
+<input type="text" id="keyword">
+<button id="search">Search</button>
+<%= link_to 'Add New +', new_post_path, class: 'header-menu', id: 'toukou'%>
+<script
+  src="https://maps.googleapis.com/maps/api/js?language=ja&region=JP&key=AIzaSyCR9EmqJhJtXvukg0bstS-Sm_ATTsu6-Co&callback=initMap&libraries=places"
+  async defer></script>
+
+
+<script>
+  document.getElementById("toukou").style.display = "none"; //Add New + のボタンは初期状態では隠す
+
+  function initMap() {
+    'use strict';
+
+    let target = document.getElementById('target');
+    // let geocoder = new google.maps.Geocoder();
+    let map;
+    let service;
+    let marker = [];
+    let destination = [];
+    let name = [];
+    let current;
+    let infoWindow;
+    let posts = gon.posts; //投稿内容が格納された配列
+    let DS = new google.maps.DirectionsService();
+    let DR = new google.maps.DirectionsRenderer();
+
+    // geolocationが対応していないブラウザの場合はアラートを表示
+    if (!navigator.geolocation) {
+      alert('Geolocation not supported!');
+      return;
+    }
+
+    // 現在地を中心に、マップを描画
+    navigator.geolocation.getCurrentPosition(function (position) {
+      current = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+      map = new google.maps.Map(target, {
+        center: current,
+        zoom: 15
+      });
+
+      // 現在地にマーカーを表示
+      new google.maps.Marker({
+        map: map,
+        position: current,
+        icon: {
+          url: 'assets/current.png',
+          scaledSize: new google.maps.Size(25, 25)
+        }
+      });
+
+
+      document.getElementById('search').addEventListener('click', function () {
+        // 前回のマーカーをクリア
+        let j;
+        for (j = 0; j < marker.length; j++) {
+          marker[j].setMap(null);
+        }
+        // 前回のルート検索結果があれば削除
+        if (DR != null) {
+          DR.set('directions', null);
+        }
+        // マップを初期位置に戻す
+        map.setCenter(current);
+        map.setZoom(15);
+        // 半径1000m以内の検索結果にヒットした店舗を表示
+        service = new google.maps.places.PlacesService(map);
+        service.nearbySearch({
+          location: current,
+          radius: '1000',
+          name: document.getElementById('keyword').value
+        }, function (results, status) {
+          let i;
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            for (i = 0; i < results.length; i++) {
+              name[i] = results[i].name;
+              destination[i] = results[i].geometry.location;
+              let j;
+              let flag = true; //以下のfor文内に入ったかどうか判定するflag
+              for (j = 0; j < posts.length; j++) {
+                if (name[i] === posts[j].title) {
+                  marker[i] = new google.maps.Marker({
+                    map: map,
+                    position: destination[i],
+                    title: name[i],
+                    animation: google.maps.Animation.DROP,
+                    icon: {
+                      url: 'assets/map_marker.png',
+                      scaledSize: new google.maps.Size(40, 40)
+                    }
+                  });
+                  flag = false;
+                  gone_markerEvent(i);
+                  break;
+                }
+              }
+
+              //上のfor文内に入っていなかったらデフォルトのマーカーを表示
+              if (flag) {
+                marker[i] = new google.maps.Marker({
+                  map: map,
+                  position: destination[i],
+                  title: name[i],
+                  animation: google.maps.Animation.DROP
+                });
+                new_markerEvent(i); //マーカーをクリックした時のイベントを追加
+              }
+            }
+          } else {
+            alert('Failed: ' + status);
+            return;
+          }
+        });
+      });
+    }, function () {
+      alert('Geolocation failed!');
+      return;
+    });
+
+
+    // 新しいマーカーをクリックした時の処理
+    function new_markerEvent(i) {
+      DR.setMap(map); //map を DirectionsRendererオブジェクトのsetMap()を使って関連付け
+      marker[i].addListener('click', function () {
+        //新規投稿のボタンが無ければボタンを表示する
+        if (document.getElementById('toukou').style.display === "none") {
+          document.getElementById('toukou').style.display = "block";
+        }
+        markerEvent(i);
+      });
+    }
+
+    // 行ったことのあるマーカーをクリックした時の処理
+    function gone_markerEvent(i) {
+      DR.setMap(map); //map を DirectionsRendererオブジェクトのsetMap()を使って関連付け
+      marker[i].addListener('click', function () {
+        if (document.getElementById('toukou').style.display === "block") {
+          document.getElementById('toukou').style.display = "none";
+        }
+        markerEvent(i);
+      });
+    }
+
+    function markerEvent(i) {
+      //マーカーの店舗情報をtoukouのurlに追加
+      $('#toukou').attr('href', '/posts/new' + '?' + 'name=' + name[i]);
+
+      if (infoWindow) {
+        infoWindow.close(); //値が入っていたらinfoWindowを閉じる
+      }
+      let request = {
+        origin: current,
+        destination: destination[i],
+        travelMode: google.maps.TravelMode.WALKING //検索結果を徒歩ルートに指定
+      };
+      DS.route(request, function (result, status) { //ルート検索を実行
+        DR.setOptions({
+          suppressMarkers: true //デフォルトで表示されるマーカーを非表示に
+        });
+        let time = result.routes[0].legs[0].duration.text; // 所要時間を取得
+        infoWindow = new google.maps.InfoWindow({
+          content: '徒歩' + time
+        });
+        infoWindow.open(map, marker[i]);
+        DR.setDirections(result); //ルートの検索結果をmapに描画
+      });
+    }
+  }
+</script>
