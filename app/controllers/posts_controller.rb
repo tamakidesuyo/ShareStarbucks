@@ -1,12 +1,14 @@
 class PostsController < ApplicationController
+  before_action :authenticate_user!
 
   def index
-    @posts = Post.all.order(created_at: 'desc')
+    # @posts = Post.all.order(created_at: 'desc')
+    @posts = current_user.posts.all.order(created_at: 'desc') #ログインユーザーの投稿のみを取得
     gon.posts = @posts
   end
 
   def show
-    @post = Post.find(params[:id])
+    @post = current_user.posts.find(params[:id]) #ログインユーザーの投稿のみから探す
   end
 
   def new
@@ -51,6 +53,6 @@ class PostsController < ApplicationController
 
   private
     def post_params
-      params.require(:post).permit(:title, :body) 
+      params.require(:post).permit(:title, :body, :user_id) 
     end
 end

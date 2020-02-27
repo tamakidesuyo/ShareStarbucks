@@ -1,7 +1,7 @@
 <h4> 現在 <%= current_user.name %> さんがログインしています </h4> <!-- ここを追加します -->
 <h4> メールアドレス： <%= current_user.email %> </h4>
+<h3 style="color:red; font-size: 20px"><%= @posts.length %>/ 1530 店制覇！</h3>
 <h2>
-  <%= link_to 'Add New +', new_post_path, class: 'header-menu' %>
   <%= link_to "ログアウト", destroy_user_session_path, method: :delete %>
   My Posts
 </h2>
@@ -25,7 +25,7 @@ data: { confirm: 'Sure?'}%>
 
 <%# 以下、mapを表示するために必要 %>
 <div id="target"></div>
-<input type="text" id="keyword">
+<input type="text" id="keyword" value="スターバックス">
 <button id="search">Search</button>
 <%= link_to 'Add New +', new_post_path, class: 'header-menu', id: 'toukou'%>
 <script

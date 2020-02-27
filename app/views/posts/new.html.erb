@@ -11,6 +11,8 @@
   <% if @post.errors.messages[:body].any? %>
     <span class="error"><%= @post.errors.messages[:body][0] %></span>
   <% end %>
+  <%# 投稿時にユーザーidも暗に登録 %>
+  <%= f.hidden_field :user_id, value: current_user.id %> 
 </p>
 <p class="submit">
   <%= f.submit %>
