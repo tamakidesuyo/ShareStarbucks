@@ -1,6 +1,12 @@
 class PostsController < ApplicationController
   before_action :authenticate_user!
 
+  def home
+    @posts = Post.all.order(created_at: 'desc')
+    # @posts = Post.where(user_id: 4)
+    @users = User.all.order(:id) #idの昇順でユーザーのデータを取得
+  end
+
   def index
     # @posts = Post.all.order(created_at: 'desc')
     @posts = current_user.posts.all.order(created_at: 'desc') #ログインユーザーの投稿のみを取得
@@ -8,7 +14,8 @@ class PostsController < ApplicationController
   end
 
   def show
-    @post = current_user.posts.find(params[:id]) #ログインユーザーの投稿のみから探す
+    # @post = current_user.posts.find(params[:id]) #ログインユーザーの投稿のみから探す
+    @post = Post.find(params[:id])
   end
 
   def new
@@ -23,7 +30,7 @@ class PostsController < ApplicationController
     @post.save
 
     if @post.save
-      redirect_to root_path
+      redirect_to posts_path
     else
       # render plain: @post.errors.inspect
       render 'new'
@@ -38,7 +45,7 @@ class PostsController < ApplicationController
   def update
     @post = Post.find(params[:id])
     if @post.update(post_params)
-      redirect_to root_path
+      redirect_to posts_path
     else
       render 'edit'
     end
@@ -47,10 +54,10 @@ class PostsController < ApplicationController
   def destroy
     @post = Post.find(params[:id])
     @post.destroy
-    redirect_to root_path
+    redirect_to posts_path
   end
 
-
+  #ストロングパラメータを定義
   private
     def post_params
       params.require(:post).permit(:title, :body, :user_id) 
