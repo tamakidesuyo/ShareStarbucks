@@ -7,10 +7,12 @@
  style:  'background-image: linear-gradient(#fd8567 0%, #f03333 100%)'%>
 <h4> 現在 <%= current_user.name %> さんがログインしています </h4>
 <h3 style="color:red; font-size: 20px; border-bottom: 3px solid #ddd"><%= @posts.length %>/ 1530 店制覇！</h3>
-<p>半径2κm以内のお店を探せます。ピンをクリックするとお店までのルートが表示されます！</p>
+<p>設定した場所から半径1κm以内のお店を探せます。ピンをクリックするとお店までのルートが表示され、感想が投稿できます！(中心地に設定する場所は出来るだけ固有名詞でお願いします(駅名など))</p>
 <p>感想を書いたお店は青いピンが立ちます！まだのお店をクリックすると感想が投稿できます！</p>
 <%# 以下、mapを表示するために必要 %>
 <div id="target"></div>
+<input type="text" id="keyword" placeholder="中心地を入力">
+<button id="setting">中心地を設定</button>
 <button id="search">近くのお店を探す</button>
 <%= link_to 'お店の感想を書く', new_post_path, class: 'header-menu', id: 'toukou'%>
 <h2>
@@ -50,7 +52,12 @@ data: { confirm: '削除しますか？'}%>
     'use strict';
 
     let target = document.getElementById('target');
-    // let geocoder = new google.maps.Geocoder();
+    let geocoder = new google.maps.Geocoder();
+    let tokyo = {
+      lat: 35.681167,
+      lng: 139.767052
+    };
+    let center;
     let map;
     let service;
     let marker = [];
@@ -69,94 +76,115 @@ data: { confirm: '削除しますか？'}%>
     }
 
     // 現在地を中心に、マップを描画
-    navigator.geolocation.getCurrentPosition(function (position) {
-      current = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-      map = new google.maps.Map(target, {
-        center: current,
-        zoom: 14
-      });
+    map = new google.maps.Map(target, {
+      center: tokyo,
+      zoom: 14
+    });
 
-      // 現在地にマーカーを表示
-      new google.maps.Marker({
-        map: map,
-        position: current,
-        icon: {
-          url: 'assets/current.png',
-          scaledSize: new google.maps.Size(25, 25)
+    document.getElementById('setting').addEventListener('click', function () {
+      geocoder.geocode({
+        address: document.getElementById('keyword').value
+      }, function (results, status) {
+        if (status !== 'OK') { //検索結果のstatusがOK以外の時の処理
+          alert('Failed: ' + status);
+          return;
+        }
+        center = results[0].geometry.location;
+        if (results[0]) {
+          map = new google.maps.Map(target, {
+            center: center,
+            zoom: 14
+          });
+
+          let center_marker = new google.maps.Marker({
+            map: map,
+            position: center,
+            title: results[0].address_components[0].long_name,
+            icon: {
+              url: 'assets/current.png',
+              scaledSize: new google.maps.Size(25, 25)
+            }
+          });
+
+          // 名前が取得できない場合あり 
+          // infoWindow = new google.maps.InfoWindow({
+          //   content: results[0].address_components[0].long_name
+          // });
+          // infoWindow.open(map, center_marker);
+
+
+        } else { //検索結果がなかった時の処理
+          alert('No results found!')
         }
       });
+    });
 
-
-      document.getElementById('search').addEventListener('click', function () {
-        // 前回のマーカーをクリア
-        let j;
-        for (j = 0; j < marker.length; j++) {
-          marker[j].setMap(null);
-        }
-        // 前回のルート検索結果があれば削除
-        if (DR != null) {
-          DR.set('directions', null);
-        }
-        // マップを初期位置に戻す
-        map.setCenter(current);
-        map.setZoom(13);
-        // 半径1000m以内の検索結果にヒットした店舗を表示
-        service = new google.maps.places.PlacesService(map);
-        service.nearbySearch({
-          location: current,
-          radius: '2000',
-          name: 'スターバックス'
-        }, function (results, status) {
-          let i;
-          if (status === google.maps.places.PlacesServiceStatus.OK) {
-            for (i = 0; i < results.length; i++) {
-              name[i] = results[i].name;
-              destination[i] = results[i].geometry.location;
-              let j;
-              let flag = true; //以下のfor文内に入ったかどうか判定するflag
-              for (j = 0; j < posts.length; j++) {
-                if (name[i] === posts[j].title) {
-                  marker[i] = new google.maps.Marker({
-                    map: map,
-                    position: destination[i],
-                    title: name[i],
-                    animation: google.maps.Animation.DROP,
-                    icon: {
-                      url: 'assets/map_marker.png',
-                      scaledSize: new google.maps.Size(40, 40)
-                    }
-                  });
-                  flag = false;
-                  gone_markerEvent(i);
-                  break;
-                }
-              }
-
-              //上のfor文内に入っていなかったらデフォルトのマーカーを表示
-              if (flag) {
+    document.getElementById('search').addEventListener('click', function () {
+      if (!center) {
+        alert('中心地を設定してください');
+      }
+      // 前回のマーカーをクリア
+      let j;
+      for (j = 0; j < marker.length; j++) {
+        marker[j].setMap(null);
+      }
+      // 前回のルート検索結果があれば削除
+      if (DR != null) {
+        DR.set('directions', null);
+      }
+      // マップを初期位置に戻す
+      map.setCenter(center);
+      map.setZoom(14);
+      // 半径1000m以内の検索結果にヒットした店舗を表示
+      service = new google.maps.places.PlacesService(map);
+      service.nearbySearch({
+        location: center,
+        radius: '1000',
+        name: 'スターバックス'
+      }, function (results, status) {
+        let i;
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          for (i = 0; i < results.length; i++) {
+            name[i] = results[i].name;
+            destination[i] = results[i].geometry.location;
+            let j;
+            let flag = true; //以下のfor文内に入ったかどうか判定するflag
+            for (j = 0; j < posts.length; j++) {
+              if (name[i] === posts[j].title) {
                 marker[i] = new google.maps.Marker({
                   map: map,
                   position: destination[i],
                   title: name[i],
-                  animation: google.maps.Animation.DROP
+                  animation: google.maps.Animation.DROP,
+                  icon: {
+                    url: 'assets/map_marker.png',
+                    scaledSize: new google.maps.Size(40, 40)
+                  }
                 });
-                new_markerEvent(i); //マーカーをクリックした時のイベントを追加
+                flag = false;
+                gone_markerEvent(i);
+                break;
               }
             }
-          } else {
-            alert('Failed: ' + status);
-            return;
-          }
-        });
-      });
-    }, function () {
-      alert('Geolocation failed!');
-      return;
-    });
 
+            //上のfor文内に入っていなかったらデフォルトのマーカーを表示
+            if (flag) {
+              marker[i] = new google.maps.Marker({
+                map: map,
+                position: destination[i],
+                title: name[i],
+                animation: google.maps.Animation.DROP
+              });
+              new_markerEvent(i); //マーカーをクリックした時のイベントを追加
+            }
+          }
+        } else {
+          console.log('Failed: ' + status);
+          alert('半径1km以内にスターバックスはありません');
+          return;
+        }
+      });
+    });
 
     // 新しいマーカーをクリックした時の処理
     function new_markerEvent(i) {
@@ -189,7 +217,7 @@ data: { confirm: '削除しますか？'}%>
         infoWindow.close(); //値が入っていたらinfoWindowを閉じる
       }
       let request = {
-        origin: current,
+        origin: center,
         destination: destination[i],
         travelMode: google.maps.TravelMode.WALKING //検索結果を徒歩ルートに指定
       };

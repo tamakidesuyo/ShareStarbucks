@@ -23,7 +23,7 @@ gem 'gon' # railsで定義した値をjsで使えるようにするgem
 gem 'bcrypt' # パスワードをハッシュ化するためのgem
 gem 'devise' # ログイン機能を実装するためのgem
 gem 'carrierwave', '~> 1.3', '>= 1.3.1'# 画像投稿に必要なgem
-gem 'rmagick' #画像をリサイズするのに使用。サーバーにimageMagickがインストールされていないと使えないので注意
+gem 'rmagick', '~> 2.16.0'  #画像をリサイズするのに使用。サーバーにimageMagickがインストールされていないと使えないので注意
 
 # Use CoffeeScript for .coffee assets and views
 gem 'coffee-rails', '~> 4.2'

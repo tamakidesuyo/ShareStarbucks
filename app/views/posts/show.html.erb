@@ -55,7 +55,6 @@
     let geocoder = new google.maps.Geocoder();
     let map;
     let post_title = gon.post.title
-    console.log(post_title)
 
     geocoder.geocode({
       address: post_title
@@ -68,7 +67,7 @@
         map = new google.maps.Map(target, {
           center: results[0].geometry.location,
           zoom: 14
-        })
+        });
 
         new google.maps.Marker({
           map: map,
