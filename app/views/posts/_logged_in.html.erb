@@ -1,5 +1,4 @@
-<h4> 現在 <%= current_user.name %> さんがログインしています </h4> <!-- ここを追加します -->
-<h4> メールアドレス： <%= current_user.email %> </h4>
+<h4> 現在 <%= current_user.name %> さんがログインしています </h4>
 <h3 style="color:red; font-size: 20px"><%= @posts.length %>/ 1530 店制覇！</h3>
 <h2>
   <%= link_to "ログアウト", destroy_user_session_path, method: :delete %>
@@ -17,6 +16,9 @@ method: :delete,
 class: 'command_x',
 data: { confirm: 'Sure?'}%>
     </span>
+    <p style="font-size: 14px; color: blue">
+      <%= post.comments.length %> 件のコメント
+    </p>
   </li>
   <% end %>
 </ul>
@@ -97,7 +99,7 @@ data: { confirm: 'Sure?'}%>
         service = new google.maps.places.PlacesService(map);
         service.nearbySearch({
           location: current,
-          radius: '1000',
+          radius: '5000',
           name: document.getElementById('keyword').value
         }, function (results, status) {
           let i;

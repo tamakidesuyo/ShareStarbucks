@@ -1,5 +1,5 @@
 class PostsController < ApplicationController
-  before_action :authenticate_user!
+  before_action :authenticate_user! #ログイン済みのユーザーのみにアクセス許可(deviseのヘルパー) (参照：https://qiita.com/tobita0000/items/866de191635e6d74e392)
 
   def home
     @posts = Post.all.order(created_at: 'desc')
@@ -16,11 +16,13 @@ class PostsController < ApplicationController
   def show
     # @post = current_user.posts.find(params[:id]) #ログインユーザーの投稿のみから探す
     @post = Post.find(params[:id])
+    gon.post = @post
   end
 
   def new
     @post = Post.new
     @name = params[:name] #@nameにindexの店舗名を代入
+    
   end
 
   def create
@@ -60,6 +62,6 @@ class PostsController < ApplicationController
   #ストロングパラメータを定義
   private
     def post_params
-      params.require(:post).permit(:title, :body, :user_id) 
+      params.require(:post).permit(:title, :body, :user_id, :img, :remove_img) 
     end
 end

@@ -12,8 +12,8 @@ class CommentsController < ApplicationController
     redirect_to post_path(@post)
   end
 
-  private 
+  private #ストロングパラメータの定義
   def comment_params
-    params.require(:comment).permit(:body)
+    params.require(:comment).permit(:body, :user_name, :user_id)
   end
 end

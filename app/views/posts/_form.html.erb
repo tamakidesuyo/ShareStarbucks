@@ -1,19 +1,53 @@
 <%= form_for @post do |f|%>
-<p>
-  <%= f.text_field :title, placeholder: 'enter title', class: 'title'%>
-  <% if @post.errors.messages[:title].any? %>
-    <span class="error"><%= @post.errors.messages[:title][0] %></span>
-  <% end %>
+<p class="title">
+  <%= @post.title %>
 </p>
 <p class="text_area">
   <%= f.text_area :body, placeholder: 'enter body' %>
   <% if @post.errors.messages[:body].any? %>
-    <span class="error"><%= @post.errors.messages[:body][0] %></span>
+  <span class="error"><%= @post.errors.messages[:body][0] %></span>
   <% end %>
+
+  <%# 投稿を保存すると「public/uploads/post/image/:postのID/ファイル名」に画像ファイルが保存される %>
+  <%# アップロード中の画像は#img_prev内にプレビュー表示される %>
+  <%= f.label "アップロード中の画像"%><br>
+  <% if @post.img? %>
+  <%= image_tag @post.img.thumb, id: 'img_prev'%><br>
+  <% else %>
+  <img id="img_prev" ><br>
+  <% end %>
+  <%= f.file_field :img, id: 'post_img'%>
+
+  <%# 画像を削除する %>
+  <p><%= f.check_box :remove_img %>画像を削除する</p>
   <%# 投稿時にユーザーidも暗に登録 %>
-  <%= f.hidden_field :user_id, value: current_user.id %> 
+  <%= f.hidden_field :user_id, value: current_user.id %>
 </p>
 <p class="submit">
-  <%= f.submit %>
+  <%= f.submit "更新する"%>
 </p>
 <% end %>
+
+<script>
+  $(function () {
+    $('#post_img').change(function (e) {
+      //ファイルオブジェクトを取得する
+      let file = e.target.files[0];
+      let reader = new FileReader();
+
+      //画像でない場合は処理終了
+      if (file.type.indexOf("image") < 0) {
+        alert("画像ファイルを指定してください");
+        return false;
+      }
+
+      //アップロードした画像を設定する
+      reader.onload = (function (file) {
+        return function (e) {
+          $("#img_prev").attr("src", e.target.result);
+        };
+      })(file);
+      reader.readAsDataURL(file);
+    });
+  });
+</script>

@@ -1,26 +1,77 @@
 <h2><%= @post.title %></h2>
 <p style="font-size: 16px"><%= @post.body %></p>
+<%# 投稿に画像が投稿されていれば表示する %>
+<% if @post.img? %>
+<%= image_tag @post.img %>
+<% end %>
 
 <h3>Comments</h3>
-<% if @post.comments.any? %>
+<% if @post.comments.any? %> <%# postに紐づくコメントがあるかを確認 %>
 <ul>
-<% @post.comments.each do |comment| %>
-<li>
-  <%= comment.body %>
-  <%= link_to '[x]', 
+  <% @post.comments.each do |comment| %>
+  <li style="font-size: 14px">
+    <p>
+      <%= comment.user_name %> さんのコメント
+    </p>
+    <%= comment.body %>
+    <% if current_user.id == comment.user_id %>
+    <%= link_to 'x', 
   post_comment_path(@post, comment), 
   method: :delete, 
-  class: 'command',
+  class: 'command_x',
   data: { confirm: 'Sure?'}%>
-</li>
-<% end %>
+    <% end %>
+  </li>
+  <% end %>
 </ul>
 <% end %>
 <%= form_for ([@post, @post.comments.build]) do |f|%>
 <p>
   <%= f.text_field :body, class: 'title' %>
+  <%# コメント投稿時にユーザーネームとユーザーidも暗に登録 %>
+  <%= f.hidden_field :user_name, value: current_user.name %>
+  <%= f.hidden_field :user_id, value: current_user.id %>
 </p>
 <p>
-  <%= f.submit %>
+  <%= f.submit "コメント投稿"%>
 </p>
 <% end %>
+
+<div id="prev_target"></div>
+<script
+  src="https://maps.googleapis.com/maps/api/js?language=ja&region=JP&key=AIzaSyCR9EmqJhJtXvukg0bstS-Sm_ATTsu6-Co&callback=initMap&libraries=places"
+  async defer></script>
+
+<script>
+  function initMap() {
+    'use strict';
+
+    let target = document.getElementById('prev_target');
+    let geocoder = new google.maps.Geocoder();
+    let map;
+    let post_title = gon.post.title
+
+    geocoder.geocode({
+      address: post_title
+    }, function (results, status) {
+      if (status !== 'OK') { //検索結果のstatusがOK以外の時の処理
+        alert('Failed: ' + status);
+        return;
+      }
+      if (results[0]) {
+        map = new google.maps.Map(target, {
+          center: results[0].geometry.location,
+          zoom: 14
+        })
+
+        new google.maps.Marker({
+          map: map,
+          position: results[0].geometry.location
+        });
+
+      } else { //検索結果がなかった時の処理
+        alert('No results found!')
+      }
+    });
+  }
+</script>
