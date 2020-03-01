@@ -19,6 +19,9 @@
 
   <%# 投稿時にユーザーidを暗に登録 %>
   <%= f.hidden_field :user_id, value: current_user.id %>
+  <%# 初期値は非公開で登録する(post.rbで公開・非公開を定義) %>
+  <%= f.hidden_field :status, value: 0 %>
+
 </p>
 <p class="submit">
   <%= f.submit "投稿", class: 'header-menu' %>

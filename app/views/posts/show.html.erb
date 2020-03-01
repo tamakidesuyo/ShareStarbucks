@@ -14,7 +14,8 @@
       <%= comment.user_name %> さんのコメント
     </p>
     <%= comment.body %>
-    <% if current_user.id == comment.user_id %>
+    <%# コメント主は自分のコメントを、ポストの投稿者は全てのコメントを削除することができる %>
+    <% if current_user.id == comment.user_id || current_user.id == @post.user_id %> 
     <%= link_to 'x', 
   post_comment_path(@post, comment), 
   method: :delete, 

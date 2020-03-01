@@ -8,8 +8,13 @@
   <% @posts.each do |post| %>
   <li>
     <%= link_to post.title, post_path(post.id) %>
+    <% if post.released? %>
+    <%= link_to '非公開にする',"/posts/nonrelease/#{post.id}", method: :patch%>
+    <% else %>
+    <%= link_to '公開する',"/posts/release/#{post.id}", method: :patch%>
+    <% end %>
     <span class="command_class">
-      <%= link_to 'Edit', edit_post_path(post.id), class: 'command'%>
+      <%= link_to '編集', edit_post_path(post.id), class: 'command'%>
       <%= link_to 'x', 
 post_path(post.id), 
 method: :delete, 

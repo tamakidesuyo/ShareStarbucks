@@ -2,7 +2,7 @@ class PostsController < ApplicationController
   before_action :authenticate_user! #ログイン済みのユーザーのみにアクセス許可(deviseのヘルパー) (参照：https://qiita.com/tobita0000/items/866de191635e6d74e392)
 
   def home
-    @posts = Post.all.order(created_at: 'desc')
+    @posts = Post.where(status: 1).order(created_at: 'desc') #statusが公開になっている投稿のみを表示
     # @posts = Post.where(user_id: 4)
     @users = User.all.order(:id) #idの昇順でユーザーのデータを取得
   end
@@ -59,9 +59,22 @@ class PostsController < ApplicationController
     redirect_to posts_path
   end
 
+  def release
+    @post =  Post.find(params[:id])
+    @post.released! unless @post.released?
+    redirect_to posts_path, notice: 'この投稿を公開しました'
+  end
+
+  def nonrelease
+    @post =  Post.find(params[:id])
+    @post.nonreleased! unless @post.nonreleased?
+    redirect_to posts_path, notice: 'この投稿を非公開にしました'
+  end
+
   #ストロングパラメータを定義
   private
     def post_params
-      params.require(:post).permit(:title, :body, :user_id, :img, :remove_img) 
+      params.require(:post).permit(:title, :body, :user_id, :img, :remove_img)
+      # params.require(:post).permit(:title, :body, :user_id, :img, :remove_img, :status)ではなぜかエラー
     end
 end

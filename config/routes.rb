@@ -10,4 +10,8 @@ Rails.application.routes.draw do
   get "posts/home" => "posts#home"
   root 'posts#home'
 
+  patch "posts/release/:id" => "posts#release"
+  patch "posts/nonrelease/:id" => "posts#nonrelease"
+
+
 end

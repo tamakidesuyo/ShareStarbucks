@@ -10,4 +10,7 @@ class Post < ApplicationRecord
    #uploaderでimgカラムと投稿画像を結びつける(carrierwave機能)
   mount_uploader :img, ImgUploader
 
+  #postのstatusが0の時非公開、1の時非公開に設定(デフォルトは非公開(0))
+  enum status: {nonreleased: 0, released: 1} 
+
 end
