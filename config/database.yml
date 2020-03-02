@@ -22,4 +22,6 @@ test:
 
 production:
   <<: *default
-  database: db/production.sqlite3
+  adapter: postgresql #postgreSQLのデータベースに接続します。
+  encoding: unicode #unicodeという文字コードを使用します。
+  pool: 5 #DBに接続できる上限の数を決めます。今回は5。
