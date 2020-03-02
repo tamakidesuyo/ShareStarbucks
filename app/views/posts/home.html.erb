@@ -1,22 +1,28 @@
+<%= link_to "ログアウト",
+ destroy_user_session_path, 
+ method: :delete, 
+ class: 'header-menu', 
+ data: { confirm: 'ログアウトしますか？'},
+ style:  'background-image: linear-gradient(#fd8567 0%, #f03333 100%)'%>
 <h4> 現在 <%= current_user.name %> さんがログインしています </h4>
 <h2>
-  <%= link_to "ログアウト", destroy_user_session_path, method: :delete %>
-  <%= link_to 'マイページ', posts_path, class: 'header-menu'%>
+  投稿一覧
 </h2>
+<%# turblinksを無効にしないとマイページのmapが読み込まれない時がある %>
+<%= link_to 'マイページへ', posts_path, class: 'header-menu', data: {"turbolinks"=>false}%>
 <ul>
   <% @users.each do |user| %>
-    <h3>
+  <h3>
     <%= user.name %> さんの投稿
-    </h3>
-    <% @posts.each do |post| %>
-      <% if user.id == post.user_id %>  <%# user.nameが投稿したpostを判別してリスト化する %>
-        <li>
-          <%= link_to post.title, post_path(post.id)%>
-          <p style="font-size: 14px; color: blue">
-            <%= post.comments.length %> 件のコメント
-          </p>
-        </li>
-      <% end %>
-    <% end %>
+  </h3>
+  <% @posts.each do |post| %>
+  <% if user.id == post.user_id %> <%# user.nameが投稿したpostを判別してリスト化する %>
+  <li>
+    <%= link_to post.title, post_path(post.id)%>
+    <p style="font-size: 14px; color: blue">
+      <%= post.comments.length %> 件のコメント
+    </p>
+  </li>
   <% end %>
-
+  <% end %>
+  <% end %>

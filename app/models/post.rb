@@ -1,7 +1,8 @@
 class Post < ApplicationRecord
   has_many :comments, dependent: :destroy
   validates :title, presence: true
-  validates :body, presence: true
+  # validates :body, presence: true
+  #bodyにvalidationをつけるとエラーが出た時@nameが渡されなくなるためつけないことにする
 
   # postsがusersに所属している。かつpostのuser_idは必須
   belongs_to :user

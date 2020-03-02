@@ -1,4 +1,5 @@
-<h2>Add New Post</h2>
+<h2>新規投稿</h2>
+<%= link_to 'マイページへ', posts_path, class: 'header-menu', data: {"turbolinks"=>false}%>
 <%= form_for @post do |f|%>
 <%# タイトルは編集不可 %>
 <p class="title">
@@ -6,10 +7,10 @@
   <%= f.hidden_field :title, value: @name %>
 </p>
 <p class="text_area">
-  <%= f.text_area :body, placeholder: 'enter body' %>
   <% if @post.errors.messages[:body].any? %>
   <span class="error"><%= @post.errors.messages[:body][0] %></span>
   <% end %>
+  <%= f.text_area :body, placeholder: 'enter body' %>
   <%# 画像のアップローダーを作成 %>
   <%# 投稿を保存すると「public/uploads/post/image/:postのID/ファイル名」に画像ファイルが保存される %>
   <%= f.label "画像をアップロード"%><br>

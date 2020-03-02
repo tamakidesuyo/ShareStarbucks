@@ -1,25 +1,37 @@
+<%= link_to '投稿一覧へ', root_path, class: 'command_edit', style: 'background-image: linear-gradient(#d800f5 0%, rgb(221, 119, 207) 100%)' %>
+<%= link_to "ログアウト",
+ destroy_user_session_path, 
+ method: :delete, 
+ class: 'header-menu', 
+ data: { confirm: 'ログアウトしますか？'},
+ style:  'background-image: linear-gradient(#fd8567 0%, #f03333 100%)'%>
 <h4> 現在 <%= current_user.name %> さんがログインしています </h4>
-<h3 style="color:red; font-size: 20px"><%= @posts.length %>/ 1530 店制覇！</h3>
+<h3 style="color:red; font-size: 20px; border-bottom: 3px solid #ddd"><%= @posts.length %>/ 1530 店制覇！</h3>
+<p>半径2κm以内のお店を探せます。ピンをクリックするとお店までのルートが表示されます！</p>
+<p>感想を書いたお店は青いピンが立ちます！まだのお店をクリックすると感想が投稿できます！</p>
+<%# 以下、mapを表示するために必要 %>
+<div id="target"></div>
+<button id="search">近くのお店を探す</button>
+<%= link_to 'お店の感想を書く', new_post_path, class: 'header-menu', id: 'toukou'%>
 <h2>
-  <%= link_to "ログアウト", destroy_user_session_path, method: :delete %>
   My Posts
 </h2>
 <ul>
   <% @posts.each do |post| %>
   <li>
     <%= link_to post.title, post_path(post.id) %>
-    <% if post.released? %>
-    <%= link_to '非公開にする',"/posts/nonrelease/#{post.id}", method: :patch%>
-    <% else %>
-    <%= link_to '公開する',"/posts/release/#{post.id}", method: :patch%>
-    <% end %>
     <span class="command_class">
-      <%= link_to '編集', edit_post_path(post.id), class: 'command'%>
+      <% if post.released? %>
+      <%= link_to '非公開',"/posts/nonrelease/#{post.id}", method: :patch, class: 'nonrelease' %>
+      <% else %>
+      <%= link_to '公開',"/posts/release/#{post.id}", method: :patch, class: 'release', data: { confirm: '公開しますか？'}%>
+      <% end %>
+      <%= link_to '編集', edit_post_path(post.id), class: 'command_edit'%>
       <%= link_to 'x', 
 post_path(post.id), 
 method: :delete, 
 class: 'command_x',
-data: { confirm: 'Sure?'}%>
+data: { confirm: '削除しますか？'}%>
     </span>
     <p style="font-size: 14px; color: blue">
       <%= post.comments.length %> 件のコメント
@@ -27,18 +39,9 @@ data: { confirm: 'Sure?'}%>
   </li>
   <% end %>
 </ul>
-
-
-
-<%# 以下、mapを表示するために必要 %>
-<div id="target"></div>
-<input type="text" id="keyword" value="スターバックス">
-<button id="search">Search</button>
-<%= link_to 'Add New +', new_post_path, class: 'header-menu', id: 'toukou'%>
 <script
   src="https://maps.googleapis.com/maps/api/js?language=ja&region=JP&key=AIzaSyCR9EmqJhJtXvukg0bstS-Sm_ATTsu6-Co&callback=initMap&libraries=places"
   async defer></script>
-
 
 <script>
   document.getElementById("toukou").style.display = "none"; //Add New + のボタンは初期状態では隠す
@@ -73,7 +76,7 @@ data: { confirm: 'Sure?'}%>
       };
       map = new google.maps.Map(target, {
         center: current,
-        zoom: 15
+        zoom: 14
       });
 
       // 現在地にマーカーを表示
@@ -99,13 +102,13 @@ data: { confirm: 'Sure?'}%>
         }
         // マップを初期位置に戻す
         map.setCenter(current);
-        map.setZoom(15);
+        map.setZoom(13);
         // 半径1000m以内の検索結果にヒットした店舗を表示
         service = new google.maps.places.PlacesService(map);
         service.nearbySearch({
           location: current,
-          radius: '5000',
-          name: document.getElementById('keyword').value
+          radius: '2000',
+          name: 'スターバックス'
         }, function (results, status) {
           let i;
           if (status === google.maps.places.PlacesServiceStatus.OK) {
