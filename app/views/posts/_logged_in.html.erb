@@ -143,6 +143,8 @@ data: { confirm: '削除しますか？'}%>
             scaledSize: new google.maps.Size(25, 25)
           }
         });
+      }, function () {
+        alert('現在地を使った機能は利用できません');
       });
     });
 
