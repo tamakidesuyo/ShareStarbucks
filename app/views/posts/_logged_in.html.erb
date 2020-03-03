@@ -7,12 +7,13 @@
  style:  'background-image: linear-gradient(#fd8567 0%, #f03333 100%)'%>
 <h4> 現在 <%= current_user.name %> さんがログインしています </h4>
 <h3 style="color:red; font-size: 20px; border-bottom: 3px solid #ddd"><%= @posts.length %>/ 1530 店制覇！</h3>
-<p>設定した場所から半径1κm以内のお店を探せます。ピンをクリックするとお店までのルートが表示され、感想が投稿できます！(中心地に設定する場所は出来るだけ固有名詞でお願いします(駅名など))</p>
+<p>設定した場所から半径1κm以内のお店を探せます。ピンをクリックするとお店までのルートが表示され、感想が投稿できます！(中心地に設定する場所は出来るだけ固有名詞でお願いします。 ex.) 東京タワー )</p>
 <p>感想を書いたお店は青いピンが立ちます！まだのお店をクリックすると感想が投稿できます！</p>
 <%# 以下、mapを表示するために必要 %>
 <div id="target"></div>
 <input type="text" id="keyword" placeholder="中心地を入力">
-<button id="setting">中心地を設定</button>
+<button id="setting">ここを中心地を設定</button>
+<button id="current">現在地を中心地に設定</button>
 <button id="search">近くのお店を探す</button>
 <%= link_to 'お店の感想を書く', new_post_path, class: 'header-menu', id: 'toukou'%>
 <h2>
@@ -81,6 +82,7 @@ data: { confirm: '削除しますか？'}%>
       zoom: 14
     });
 
+    // 以下、入力された場所を中心地に設定する処理
     document.getElementById('setting').addEventListener('click', function () {
       geocoder.geocode({
         address: document.getElementById('keyword').value
@@ -90,7 +92,8 @@ data: { confirm: '削除しますか？'}%>
           return;
         }
         center = results[0].geometry.location;
-        if (results[0]) {
+
+        if (center) { //検索結果があった時の処理
           map = new google.maps.Map(target, {
             center: center,
             zoom: 14
@@ -119,6 +122,31 @@ data: { confirm: '削除しますか？'}%>
       });
     });
 
+    // 以下、現在地を中心地に設定する処理 
+    document.getElementById('current').addEventListener('click', function () {
+      navigator.geolocation.getCurrentPosition(function (position) {
+        center = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        }
+        map = new google.maps.Map(target, {
+          center: center,
+          zoom: 14
+        });
+
+        let center_marker = new google.maps.Marker({
+          map: map,
+          position: center,
+          title: '現在地',
+          icon: {
+            url: 'assets/current.png',
+            scaledSize: new google.maps.Size(25, 25)
+          }
+        });
+      });
+    });
+
+    // 以下、中心から半径1km以内のお店を表示するための処理
     document.getElementById('search').addEventListener('click', function () {
       if (!center) {
         alert('中心地を設定してください');
@@ -186,6 +214,36 @@ data: { confirm: '削除しますか？'}%>
       });
     });
 
+    //設定した中心地をもとにマップを描画する処理
+    function draw_map() {
+      if (center) {
+        map = new google.maps.Map(target, {
+          center: center,
+          zoom: 14
+        });
+
+        let center_marker = new google.maps.Marker({
+          map: map,
+          position: center,
+          title: center_title,
+          icon: {
+            url: 'assets/current.png',
+            scaledSize: new google.maps.Size(25, 25)
+          }
+        });
+
+        // 名前が取得できない場合あり 
+        // infoWindow = new google.maps.InfoWindow({
+        //   content: results[0].address_components[0].long_name
+        // });
+        // infoWindow.open(map, center_marker);
+
+
+      } else { //検索結果がなかった時の処理
+        alert('No results found!')
+      }
+    }
+
     // 新しいマーカーをクリックした時の処理
     function new_markerEvent(i) {
       DR.setMap(map); //map を DirectionsRendererオブジェクトのsetMap()を使って関連付け
@@ -209,6 +267,7 @@ data: { confirm: '削除しますか？'}%>
       });
     }
 
+    // どちらのマーカーをクリックしても共通して行う処理
     function markerEvent(i) {
       //マーカーの店舗情報をtoukouのurlに追加
       $('#toukou').attr('href', '/posts/new' + '?' + 'name=' + name[i]);
