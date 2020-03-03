@@ -10,7 +10,7 @@
   <% if @post.errors.messages[:body].any? %>
   <span class="error"><%= @post.errors.messages[:body][0] %></span>
   <% end %>
-  <%= f.text_area :body, placeholder: 'enter body' %>
+  <%= f.text_area :body, placeholder: '感想を入力して下さい' %>
   <%# 画像のアップローダーを作成 %>
   <%# 投稿を保存すると「public/uploads/post/image/:postのID/ファイル名」に画像ファイルが保存される %>
   <%= f.label "画像をアップロード"%><br>
